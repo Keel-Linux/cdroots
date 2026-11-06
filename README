@@ -1,3 +1,54 @@
+gfxboot keel notes
+==================
+
+The ISO of a Keel appliance boots into the cdroot gfxboot-keel
+(CDROOT ?= gfxboot-keel in mk/turnkey.mk of Keel-Linux/common). It is a
+copy of gfxboot-turnkey with one change: splash.pcx, the background image
+of the boot menu, shows the Keel mark and the "KEEL LINUX" wordmark. The
+theme code (bootlogo, en.tr) is the same as in gfxboot-turnkey.
+gfxboot-turnkey stays as it is, so that the diffs to upstream stay clear.
+
+- gfxboot-keel/isolinux
+
+    - bootlogo      # packed archive of src/gfxboot-keel-bootlogo
+
+- src/gfxboot-keel-bootlogo
+
+    - splash.pcx    # 640x480, PCX, 8-bit colour; made by src/keel-splash
+    - all other files are copies of src/gfxboot-turnkey-bootlogo
+
+- src/keel-splash   # not in the archive
+
+    - keel-mark-dark.svg    # the Keel mark for a dark background
+                            # (keellinux.org/assets/keel-mark-dark.svg)
+    - make-splash.sh        # makes splash.pcx from keel-mark-dark.svg
+
+To change the Keel boot menu image:
+
+    apt-get install gfxboot librsvg2-bin imagemagick fonts-dejavu-core
+
+    src/keel-splash/make-splash.sh
+    cd src
+    gfxboot --archive gfxboot-keel-bootlogo \
+        --pack-archive ../gfxboot-keel/isolinux/bootlogo
+    cd ..
+    bats tests/
+
+Do not put other files in src/gfxboot-keel-bootlogo: --pack-archive packs
+all the files of the directory. tests/gfxboot-keel.bats unpacks the archive
+again and compares each file with its source.
+
+To see the menu without a full build, make an ISO of the cdroot with the
+syslinux modules that fab copies in (cdroot-dynamic in fab's product.mk:
+isolinux.bin, ldlinux, libcom32, vesamenu, gfxboot and chain .c32 from
+the syslinux and isolinux packages) and boot it with qemu-system-x86_64
+-cdrom. No kernel is necessary to see the menu.
+
+The ISO boots with BIOS (isolinux) only. fab's product.iso target uses
+run-genisoimage, not run-genisoimage-uefi, and this repository has no
+efi.img (UEFI boot support was rolled back upstream).
+
+
 gfxboot turnkey notes
 =====================
 

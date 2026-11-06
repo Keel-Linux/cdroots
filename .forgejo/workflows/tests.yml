@@ -1,0 +1,23 @@
+# The tests of the cdroots: tests/*.bats. tests/gfxboot-keel.bats unpacks
+# the packed bootlogo of gfxboot-keel, compares it with its sources and
+# makes sure that no file of the Keel boot menu shows TurnKey.
+# The check is "tests / bats".
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [19.x]
+permissions:
+  contents: read
+jobs:
+  bats:
+    runs-on: keel-host
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install bats, cpio and file
+        run: |
+          command -v bats >/dev/null 2>&1 && command -v cpio >/dev/null 2>&1 \
+            && command -v file >/dev/null 2>&1 || keel-need-packages bats cpio file
+      - name: Tests
+        run: bats tests/
